@@ -63,6 +63,9 @@ class CFRAgent():
         obs, legal_actions = self.get_state(current_player)
         action_probs = self.action_probs(obs, legal_actions, self.policy)
 
+        if not current_player == player_id:
+            return state_utility
+
         for action in legal_actions:
             action_prob = action_probs[action]
             new_probs = probs.copy()
@@ -75,9 +78,6 @@ class CFRAgent():
 
             state_utility += action_prob * utility
             action_utilities[action] = utility
-
-        if not current_player == player_id:
-            return state_utility
 
         # If it is current player, we record the policy and compute regret
         player_prob = probs[current_player]

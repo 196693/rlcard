@@ -79,6 +79,8 @@ class MahjongGame(object):
         if not self.history:
             return False
         self.dealer, self.players, self.round = self.history.pop()
+        self.round.dealer = self.dealer
+        self.round.judger = self.judger
         return True
 
     def get_state(self, player_id):
