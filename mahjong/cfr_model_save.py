@@ -14,7 +14,7 @@ env = rlcard.make('mahjong', config={'seed': 0, 'allow_step_back': True})
 eval_env = rlcard.make('mahjong', config={'seed': 0})
 path_prefix = './'
 # Set the iterations numbers and how frequently we evaluate the performance
-evaluate_every = 100
+evaluate_every = 1
 evaluate_num = 1000
 episode_num = 1000
 
@@ -25,7 +25,7 @@ memory_init_size = 1000
 train_every = 64
 
 # The paths for saving the logs and learning curves
-log_dir = f'{path_prefix}/experiments/mahjong_cfr_result2/'
+log_dir = f'{path_prefix}/experiments/mahjong_cfr_result3/'
 
 # Set a global seed
 set_global_seed(0)

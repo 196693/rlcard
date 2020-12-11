@@ -1,3 +1,5 @@
+from copy import deepcopy
+
 import numpy as np
 import collections
 
@@ -63,10 +65,16 @@ class CFRAgent():
         obs, legal_actions = self.get_state(current_player)
         action_probs = self.action_probs(obs, legal_actions, self.policy)
 
-        if not current_player == player_id:
-            return state_utility
+        left_num = 1
+        action_probs_copy = deepcopy(action_probs)
+        chosen_legal_actions = []
+        if len(action_probs) > left_num:
+            for i in range(left_num):
+                action = np.argmax(action_probs_copy)
+                chosen_legal_actions.append(action)
+                action_probs_copy[action] = float('-inf')
 
-        for action in legal_actions:
+        for action in chosen_legal_actions:
             action_prob = action_probs[action]
             new_probs = probs.copy()
             new_probs[current_player] *= action_prob
@@ -79,6 +87,9 @@ class CFRAgent():
             state_utility += action_prob * utility
             action_utilities[action] = utility
 
+        if not current_player == player_id:
+            return state_utility
+
         # If it is current player, we record the policy and compute regret
         player_prob = probs[current_player]
         counterfactual_prob = (np.prod(probs[:current_player]) *
@@ -89,7 +100,7 @@ class CFRAgent():
             self.regrets[obs] = np.zeros(self.env.action_num)
         if obs not in self.average_policy:
             self.average_policy[obs] = np.zeros(self.env.action_num)
-        for action in legal_actions:
+        for action in chosen_legal_actions:
             action_prob = action_probs[action]
             regret = counterfactual_prob * (action_utilities[action][current_player]
                     - player_state_utility)
