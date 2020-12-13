@@ -107,6 +107,7 @@ with tf.Session(config=config) as sess:
             logger.log_performance(env.timestep, tournament(eval_env, evaluate_num)[0])
             save_model(sess, saver)
             print('The episode is : ', episode)
+            logger.log(f'The episode is : {episode}')
     # Close files in the logger
     logger.close_files()
 
