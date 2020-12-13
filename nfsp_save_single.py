@@ -1,12 +1,13 @@
-''' An example of learning a Deep-Q Agent on Mahjong
+''' An example of learning a NFSP Agent on Mahjong
 '''
+
 import shutil
 
 import tensorflow as tf
 import os
 import time
 import rlcard
-from rlcard.agents import DQNAgent
+from rlcard.agents import NFSPAgent
 from rlcard.agents import RandomAgent
 from rlcard.utils import set_global_seed, tournament
 from rlcard.utils import Logger
@@ -17,22 +18,21 @@ eval_env = rlcard.make('mahjong', config={'seed': 0})
 
 # Set the iterations numbers and how frequently we evaluate the performance
 evaluate_every = 100
-evaluate_num = 1000
-episode_num = 1000
+evaluate_num = 100
+episode_num = 400
 
 # The intial memory size
 memory_init_size = 1000
 
 # Train the agent every X steps
-train_every = 1
+train_every = 64
 
 # The paths for saving the logs and learning curves
-log_dir = f'./experiments/mahjong_dqn_result_{time.time()}/'
+log_dir = f'./experiments/nfsp_single_result_{time.time()}/'
 path_prefix = './'
-save_dir_pre = f'{path_prefix}models/mahjong_dqn_'
+save_dir_pre = f'{path_prefix}models/nfsp_single_'
 save_dir_main = f'{save_dir_pre}main/'
 save_dir_last = f'{save_dir_pre}last/'
-
 # Set a global seed
 set_global_seed(0)
 
@@ -70,28 +70,40 @@ with tf.Session() as sess:
     global_step = tf.Variable(0, name='global_step', trainable=False)
 
     # Set up the agents
-    agent = DQNAgent(sess,
-                     scope='dqn',
-                     action_num=env.action_num,
-                     replay_memory_size=20000,
-                     replay_memory_init_size=memory_init_size,
-                     train_every=train_every,
-                     state_shape=env.state_shape,
-                     mlp_layers=[512, 512])
+    agent = NFSPAgent(sess,
+                      scope='nfsp',
+                      action_num=env.action_num,
+                      state_shape=env.state_shape,
+                      hidden_layers_sizes=[512, 1024, 2048, 1024, 512],
+                      anticipatory_param=0.5,
+                      batch_size=256,
+                      rl_learning_rate=0.00005,
+                      sl_learning_rate=0.00001,
+                      min_buffer_size_to_learn=memory_init_size,
+                      q_replay_memory_size=int(1e5),
+                      q_replay_memory_init_size=memory_init_size,
+                      train_every=train_every,
+                      q_train_every=train_every,
+                      q_batch_size=256,
+                      q_mlp_layers=[512, 1024, 2048, 1024, 512])
+
     random_agent = RandomAgent(action_num=eval_env.action_num)
+
     env.set_agents([agent, random_agent, random_agent, random_agent])
     eval_env.set_agents([agent, random_agent, random_agent, random_agent])
 
     # Initialize global variables
     sess.run(tf.global_variables_initializer())
-
     saver = tf.train.Saver()
     load_sess(sess, saver)
+    # Init a Logger to plot the learning curvefrom rlcard.agents.random_agent import RandomAgent
 
-    # Init a Logger to plot the learning curve
     logger = Logger(log_dir)
 
     for episode in range(episode_num):
+
+        # First sample a policy for the episode
+        agent.sample_episode_policy()
 
         # Generate data from the environment
         trajectories, _ = env.run(is_training=True)
@@ -109,6 +121,6 @@ with tf.Session() as sess:
     logger.close_files()
 
     # Plot the learning curve
-    logger.plot('DQN')
+    logger.plot('NFSP')
 
     save_model(sess, saver)

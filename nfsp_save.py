@@ -120,6 +120,7 @@ with tf.Session() as sess:
         if episode % evaluate_every == 0:
             logger.log_performance(env.timestep, tournament(eval_env, evaluate_num)[0])
             save_model(sess, saver)
+            print('The episode is : ', episode)
     # Close files in the logger
     logger.close_files()
 
