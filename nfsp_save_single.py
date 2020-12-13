@@ -65,7 +65,10 @@ def load_sess(sess, saver):
         saver.restore(sess, module_file)
 
 
-with tf.Session() as sess:
+config = tf.ConfigProto()
+config.gpu_options.allow_growth = True
+
+with tf.Session(config=config) as sess:
     # Initialize a global step
     global_step = tf.Variable(0, name='global_step', trainable=False)
 
