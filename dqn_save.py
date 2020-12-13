@@ -30,8 +30,8 @@ train_every = 1
 log_dir = f'./experiments/mahjong_dqn_result_{time.time()}/'
 path_prefix = './'
 save_dir_pre = f'{path_prefix}models/mahjong_dqn_'
-save_dir_main = f'{save_dir_pre}main'
-save_dir_last = f'{save_dir_pre}last'
+save_dir_main = f'{save_dir_pre}main/'
+save_dir_last = f'{save_dir_pre}last/'
 
 # Set a global seed
 set_global_seed(0)
@@ -40,7 +40,7 @@ set_global_seed(0)
 def save_model(sess, saver):
     # Save model
     # save_dir = f'{save_dir_last}/model'
-    save_dir2 = f'{save_dir_main}/model'
+    save_dir2 = f'{save_dir_main}/model.ckpt'
     if os.path.exists(save_dir_last):
         shutil.rmtree(save_dir_last)
     # os.makedirs(save_dir)
@@ -48,7 +48,7 @@ def save_model(sess, saver):
         shutil.copytree(save_dir_main, save_dir_last)
         shutil.rmtree(save_dir_main)
     os.makedirs(save_dir_main)
-    os.makedirs(save_dir2)
+    # os.makedirs(save_dir2)
     saver.save(sess, save_dir2)
 
 
@@ -56,21 +56,19 @@ def load_sess(sess, saver):
     sl = os.path.exists(save_dir_last)
     sm = os.path.exists(save_dir_main)
     if not sl and not sm:
-        return
+        pass
     elif sl and not sm:
         module_file = tf.train.latest_checkpoint(save_dir_last)
         saver.restore(sess, module_file)
     else:
-        module_file = tf.train.latest_checkpoint(f'{save_dir_main}')
-        print(f'{save_dir_main}/checkpoint')
+        module_file = tf.train.latest_checkpoint(save_dir_main)
         saver.restore(sess, module_file)
 
 
 with tf.Session() as sess:
     # Initialize a global step
     global_step = tf.Variable(0, name='global_step', trainable=False)
-    saver = tf.train.Saver()
-    load_sess(sess, saver)
+
     # Set up the agents
     agent = DQNAgent(sess,
                      scope='dqn',
@@ -86,6 +84,9 @@ with tf.Session() as sess:
 
     # Initialize global variables
     sess.run(tf.global_variables_initializer())
+
+    saver = tf.train.Saver()
+    load_sess(sess, saver)
 
     # Init a Logger to plot the learning curve
     logger = Logger(log_dir)
