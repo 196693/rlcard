@@ -17,9 +17,9 @@ env = rlcard.make('mahjong', config={'seed': 0})
 eval_env = rlcard.make('mahjong', config={'seed': 0})
 
 # Set the iterations numbers and how frequently we evaluate the performance
-evaluate_every = 100
-evaluate_num = 100
-episode_num = 400
+evaluate_every = 3000
+evaluate_num = 1000
+episode_num = 30001
 
 # The intial memory size
 memory_init_size = 1000
@@ -104,6 +104,9 @@ with tf.Session(config=config) as sess:
 
     logger = Logger(log_dir)
 
+    start_time = time.time()
+    logger.log(f'Begin at {time.strftime("%Y-%m-%d %H:%M:%S")}')
+
     for episode in range(episode_num):
 
         # First sample a policy for the episode
@@ -122,8 +125,10 @@ with tf.Session(config=config) as sess:
         if episode % evaluate_every == 0:
             logger.log_performance(env.timestep, tournament(eval_env, evaluate_num)[0])
             save_model(sess, saver)
-            print('The episode is : ', episode)
             logger.log(f'The episode is : {episode}')
+            logger.log(f'Traning time: {time.time() - start_time}')
+
+    logger.log(f'End at {time.strftime("%Y-%m-%d %H:%M:%S")}')
     # Close files in the logger
     logger.close_files()
 

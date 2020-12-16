@@ -16,9 +16,9 @@ env = rlcard.make('mahjong', config={'seed': 0})
 eval_env = rlcard.make('mahjong', config={'seed': 0})
 
 # Set the iterations numbers and how frequently we evaluate the performance
-evaluate_every = 100
+evaluate_every = 3000
 evaluate_num = 1000
-episode_num = 1000
+episode_num = 100000
 
 # The intial memory size
 memory_init_size = 1000
@@ -98,6 +98,9 @@ with tf.Session(config=config) as sess:
     # Init a Logger to plot the learning curve
     logger = Logger(log_dir)
 
+    start_time = time.time()
+    logger.log(f'Begin at {time.strftime("%Y-%m-%d %H:%M:%S")}')
+
     for episode in range(episode_num):
 
         # Generate data from the environment
@@ -113,6 +116,9 @@ with tf.Session(config=config) as sess:
             logger.log_performance(env.timestep, tournament(eval_env, evaluate_num)[0])
             save_model(sess, saver)
             logger.log(f'The episode is : {episode}')
+            logger.log(f'Traning time: {time.time() - start_time}')
+
+    logger.log(f'End at {time.strftime("%Y-%m-%d %H:%M:%S")}')
     # Close files in the logger
     logger.close_files()
 
